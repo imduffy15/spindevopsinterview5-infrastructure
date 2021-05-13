@@ -1,0 +1,14 @@
+apiserver:
+  enabled: false
+  servingCerts:
+    generate: true
+
+criticalAddon: true
+
+enableAnalytics: false
+
+rbac:
+  create: true
+
+config:
+  clusterName: spindevopsinterview5

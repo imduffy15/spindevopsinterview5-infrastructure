@@ -1,0 +1,43 @@
+repositories:
+  - name: appscode
+    url: https://charts.appscode.com/stable/
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: banzicloud-stable
+    url: https://kubernetes-charts.banzaicloud.com
+
+templates:
+  default: &default
+    missingFileHandler: Warn
+    values:
+    - config/{{`{{ .Release.Name }}`}}/values.yaml
+    - config/{{`{{ .Release.Name }}`}}/values.yaml.gotmpl
+    secrets:
+    - secrets/{{`{{ .Release.Name }}`}}/secrets.yaml
+    - secrets/{{`{{ .Release.Name }}`}}/secrets.yaml.gotmpl
+
+releases:
+  - name: kubed
+    namespace: kube-system
+    chart: appscode/kubed
+    version: 0.12.0
+    <<: *default
+  - name: nginx-ingress
+    namespace: kube-system
+    chart: ingress-nginx/ingress-nginx
+    version: 2.16.0
+    <<: *default
+  - name: logging-operator
+    namespace: kube-system
+    chart: banzicloud-stable/logging-operator
+    disableValidation: true
+    version: 3.9.0
+    <<: *default
+  - name: prometheus-operator
+    namespace: kube-system
+    chart: prometheus-community/kube-prometheus-stack
+    disableValidation: true
+    version: 15.4.6
+    <<: *default
