@@ -1,5 +1,7 @@
 # Spin DevOps Interview 5 Infrastructure
 
+## Plan
+
 This repository will contain all of the infrastructure related components required to complete the spin interview challenge.
 
 This will include:
@@ -23,7 +25,7 @@ Software (helmfile):
  - shared secrets: secrets required for different components
  - oauth2 proxy: provide SSO on top of grafana/prometheus/alert manager
 
-# Usage
+## Description
 
 It is assumed that this will be manually run by a devops engineer. Alternatively, it could be ran on some devops team owned infrastructure that is parameterised to quickly spin up new AWS accounts and infrastructure for teams.
 
@@ -94,3 +96,14 @@ $ kubectl cluster-info
 ```
 
 ---
+
+
+## Services
+
+Accessible with GSuite SSO for `*@spin.pm` and `*@ianduffy.ie`
+
+ - https://grafana.chllng.ianduffy.ie
+ - https://alertmanager.chllng.ianduffy.ie
+ - https://prometheus.chllng.ianduffy.ie
+
+CI is available at https://woodpecker.chllng.ianduffy.ie/ anyone with a Github account can login/view, repo addition is restricted to my github username `imduffy15`.
