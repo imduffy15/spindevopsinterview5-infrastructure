@@ -211,6 +211,12 @@ resource "aws_iam_access_key" "ci_user" {
   user = aws_iam_user.ci_user.name
 }
 
+resource "local_file" "ci_user" {
+  filename = "${path.module}/generated_configs/ci-aws-creds.txt"
+  content = "${aws_iam_access_key.ci_user.id}\n${aws_iam_access_key.ci_user.secret}\n"
+  file_permission = 0600
+}
+
 resource "aws_iam_user_policy" "ci_user" {
   name = "${local.prefix}-notejam-ci-user"
   user = aws_iam_user.ci_user.name
@@ -222,9 +228,6 @@ resource "aws_iam_user_policy" "ci_user" {
         {
             "Effect": "Allow",
             "Action": [
-                "imagebuilder:GetComponent",
-                "imagebuilder:GetContainerRecipe",
-                "ecr:GetAuthorizationToken",
                 "ecr:BatchGetImage",
                 "ecr:InitiateLayerUpload",
                 "ecr:UploadLayerPart",
@@ -238,9 +241,50 @@ resource "aws_iam_user_policy" "ci_user" {
         {
             "Effect": "Allow",
             "Action": [
+                "ecr:GetAuthorizationToken"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
                 "kms:Decrypt"
             ],
             "Resource": "${aws_kms_key.notejam.arn}"
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_user" "smtp_user" {
+  name = "${local.prefix}-notejam-smtp-user"
+}
+
+resource "aws_iam_access_key" "smtp_user" {
+  user = aws_iam_user.smtp_user.name
+}
+
+resource "local_file" "smtp_user" {
+  filename = "${path.module}/generated_configs/smtp-creds.txt"
+  content = "${aws_iam_access_key.smtp_user.id}\n${aws_iam_access_key.smtp_user.ses_smtp_password_v4}\n"
+  file_permission = 0600
+}
+
+resource "aws_iam_user_policy" "smtp-user" {
+  name = "${local.prefix}-notejam-smtp-user"
+  user = aws_iam_user.smtp_user.name
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ses:SendRawEmail"
+            ],
+            "Resource": "*"
         }
     ]
 }

@@ -43,11 +43,32 @@ statefulset:
     accessMode: ReadWriteOnce
 
 ingress:
-  default:
+  http:
+    enabled: true
+    port: http
+    annotations:
+      nginx.ingress.kubernetes.io/auth-signin: https://auth.chllng.ianduffy.ie/oauth2/start?rd=https://$host$request_uri$is_args$args
+      nginx.ingress.kubernetes.io/auth-url: https://auth.chllng.ianduffy.ie/oauth2/auth
+    hosts:
+     "woodpecker.chllng.ianduffy.ie": /
+    tls:
+     - secretName: certificates-wildcard-cert
+       hosts:
+       - woodpecker.chllng.ianduffy.ie
+  webhook:
     enabled: true
     port: http
     hosts:
-     "woodpecker.chllng.ianduffy.ie": /
+     "woodpecker.chllng.ianduffy.ie": /hook
+    tls:
+     - secretName: certificates-wildcard-cert
+       hosts:
+       - woodpecker.chllng.ianduffy.ie
+  api:
+    enabled: true
+    port: http
+    hosts:
+     "woodpecker.chllng.ianduffy.ie": /api
     tls:
      - secretName: certificates-wildcard-cert
        hosts:

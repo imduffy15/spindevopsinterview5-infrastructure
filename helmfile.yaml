@@ -24,7 +24,6 @@ templates:
     - configs/{{`{{ .Release.Name }}`}}/values.yaml.gotmpl
     secrets:
     - secrets/{{`{{ .Release.Name }}`}}/secrets.yaml
-    - secrets/{{`{{ .Release.Name }}`}}/secrets.yaml.gotmpl
 
 releases:
   - name: kubed
