@@ -1,0 +1,21 @@
+{{- $root := . -}}
+{{- range $index, $cert := .Values.certificates }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  labels: {{ include "certificates.labels" $root | nindent 4 }}
+  name: {{ include "certificates.fullname" $root }}-{{ $cert.name }}
+spec:
+  secretName: {{ include "certificates.fullname" $root }}-{{ $cert.name }}
+  duration: {{ $cert.duration | default "2160h" }}
+  renewBefore: {{ $cert.renewBefore | default "360h" }}
+  commonName: {{ $cert.cn }}
+  dnsNames:
+  {{- range $dnsName := $cert.dnsNames }}
+  - {{ $dnsName | quote }}
+  {{- end }}
+  issuerRef:
+    name: {{ include "certificates.fullname" $root }}-letsencrypt-prod
+    kind: Issuer
+{{- end }}

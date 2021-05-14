@@ -1,0 +1,9 @@
+certificates: []
+solvers: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+email: ""
+
+secrets: {}

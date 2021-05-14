@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  labels: {{ include "certificates.labels" . | nindent 4 }}
+  name: {{ include "certificates.fullname" . }}-letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: {{ .Values.email }}
+    privateKeySecretRef:
+      name: {{ include "certificates.fullname" . }}-letsencrypt-prod
+    solvers: {{ .Values.solvers | toYaml | nindent 6}}

@@ -1,0 +1,12 @@
+nameOverride: notejam-ci-user
+fullnameOverride: notejam-ci-user
+
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - '*'
+  verbs:
+  - '*'

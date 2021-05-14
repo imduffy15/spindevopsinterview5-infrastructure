@@ -1,0 +1,19 @@
+config:
+  configFile: |-
+    email_domains = ["ianduffy.ie", "spin.pm"]
+    skip_provider_button = true
+    upstream = [ "file:///dev/null" ]
+    whitelist_domains = ".chllng.ianduffy.ie"
+    cookie_domain = ".chllng.ianduffy.ie"
+    set_xauthrequest = true
+ingress:
+  enabled: true
+  path: /
+  hosts:
+    - auth.chllng.ianduffy.ie
+  tls:
+    - secretName: certificates-wildcard-cert
+      hosts:
+        - auth.chllng.ianduffy.ie
+
+replicaCount: 3

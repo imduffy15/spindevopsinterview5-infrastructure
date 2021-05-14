@@ -1,0 +1,6 @@
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  labels: {{ include "serviceAccount.labels" . | nindent 4 }}
+  name: {{ include "serviceAccount.fullname" . }}
+rules: {{ .Values.rules | toYaml | nindent 2 }}

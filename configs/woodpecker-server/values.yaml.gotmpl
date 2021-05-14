@@ -48,8 +48,7 @@ ingress:
     port: http
     hosts:
      "woodpecker.chllng.ianduffy.ie": /
-     "7cd31b621b3e.ngrok.io": /
-    # tls:
-    #  - secretName: certificates-wildcard-cert
-    #    hosts:
-    #    - woodpecker.chllng.ianduffy.ie
+    tls:
+     - secretName: certificates-wildcard-cert
+       hosts:
+       - woodpecker.chllng.ianduffy.ie

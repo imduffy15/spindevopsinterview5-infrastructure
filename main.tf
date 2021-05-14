@@ -6,11 +6,6 @@ terraform {
   }
 }
 
-resource "random_string" "suffix" {
-  length  = 8
-  special = false
-}
-
 locals {
   prefix          = "spindevopsinterview5"
   aws_region      = "us-west-2"
@@ -34,7 +29,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 2.47"
 
-  name             = "${local.prefix}-vpc-${random_string.suffix.result}"
+  name             = "${local.prefix}-vpc"
   cidr             = "10.0.0.0/16"
   azs              = data.aws_availability_zones.available.names
   private_subnets  = []
@@ -51,7 +46,7 @@ module "vpc" {
   enable_dns_support   = true
 
   public_subnet_tags = {
-    "kubernetes.io/cluster/${local.prefix}-eks-${random_string.suffix.result}" = "shared"
+    "kubernetes.io/cluster/${local.prefix}-eks" = "shared"
     "kubernetes.io/role/elb"                                                   = "1"
   }
 }
@@ -59,8 +54,8 @@ module "vpc" {
 # Default security group, everything has access to each other
 
 resource "aws_security_group" "default" {
-  name        = "${local.prefix}-default-${random_string.suffix.result}"
-  description = "Default security group for ${local.prefix}-eks-${random_string.suffix.result}"
+  name        = "${local.prefix}-default"
+  description = "Default security group for ${local.prefix}-eks"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
@@ -83,7 +78,7 @@ resource "aws_security_group" "default" {
 
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
-  cluster_name    = "${local.prefix}-eks-${random_string.suffix.result}"
+  cluster_name    = "${local.prefix}-eks"
   cluster_version = "1.17"
   subnets         = module.vpc.public_subnets
 
@@ -91,13 +86,15 @@ module "eks" {
 
   worker_groups = [
     {
-      name                 = "${local.prefix}-default-node-pool-${random_string.suffix.result}"
+      name                 = "${local.prefix}-default-node-pool"
       instance_type        = "t3.medium"
       asg_desired_capacity = 3
+      bootstrap_extra_args = "--enable-docker-bridge true"
     }
   ]
 
   worker_additional_security_group_ids = [aws_security_group.default.id]
+  write_kubeconfig = false
 }
 
 data "aws_eks_cluster" "cluster" {
@@ -161,7 +158,7 @@ resource "aws_db_instance" "notejam_db" {
   engine_version       = "5.7.33"
   instance_class       = "db.t3.micro"
   db_subnet_group_name = module.vpc.database_subnet_group_name
-  identifier           = "${local.prefix}-rds-${random_string.suffix.result}"
+  identifier           = "${local.prefix}-rds"
   skip_final_snapshot  = true
 
   vpc_security_group_ids = [
@@ -178,7 +175,7 @@ resource "local_file" "dbconfig" {
   filename = "${path.module}/generated_configs/application.yaml"
   content = templatefile("${path.module}/templates/spring-db-config.yaml.tpl", {
     endpoint    = aws_db_instance.notejam_db.endpoint
-    db_name     = aws_db_instance.notejam_db.endpoint
+    db_name     = local.db_notejam_name
     db_password = random_string.db_password.result
   })
   file_permission = 0600
@@ -186,7 +183,7 @@ resource "local_file" "dbconfig" {
 
 # KMS Key
 
-resource "aws_kms_key" "default" {
+resource "aws_kms_key" "notejam" {
   description             = "${local.prefix} key for encrypting notejam secrets"
   deletion_window_in_days = 7
 }
@@ -194,7 +191,58 @@ resource "aws_kms_key" "default" {
 resource "local_file" "sopsconfig" {
   filename = "${path.module}/generated_configs/notejam-sops.yaml"
   content = templatefile("${path.module}/templates/sops-config.yaml.tpl", {
-    arn = aws_kms_key.default.arn
+    kms_arn = aws_kms_key.notejam.arn
   })
   file_permission = 0600
+}
+
+resource "aws_ecr_repository" "registry" {
+  name                 = "${local.prefix}-notejam"
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+}
+
+resource "aws_iam_user" "ci_user" {
+  name = "${local.prefix}-notejam-ci-user"
+}
+
+resource "aws_iam_access_key" "ci_user" {
+  user = aws_iam_user.ci_user.name
+}
+
+resource "aws_iam_user_policy" "ci_user" {
+  name = "${local.prefix}-notejam-ci-user"
+  user = aws_iam_user.ci_user.name
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "imagebuilder:GetComponent",
+                "imagebuilder:GetContainerRecipe",
+                "ecr:GetAuthorizationToken",
+                "ecr:BatchGetImage",
+                "ecr:InitiateLayerUpload",
+                "ecr:UploadLayerPart",
+                "ecr:CompleteLayerUpload",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:PutImage"
+            ],
+            "Resource": "${aws_ecr_repository.registry.arn}"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "kms:Decrypt"
+            ],
+            "Resource": "${aws_kms_key.notejam.arn}"
+        }
+    ]
+}
+EOF
 }

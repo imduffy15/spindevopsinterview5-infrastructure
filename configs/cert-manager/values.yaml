@@ -1,0 +1,7 @@
+extraArgs:
+  - --v=4
+securityContext:
+  enabled: true
+cainjector:
+  enabled: true
+installCRDs: true

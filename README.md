@@ -72,3 +72,25 @@ An S3 bucket is required for storing terraform state, this has been created manu
 The DNS zone for this is hosted outside of the provided AWS account. IAM access keys are provided to interact with the zone.
 
 ---
+
+---
+**NOTE**
+
+
+Credentials for the CI to execute the deploy need to be created and imported into the CI system.
+This is done for two reasons:
+
+1) The CI system is doing docker in docker and injecting service account credentials is complicated. While doable, the hacks
+involved likely introduce more risk than static credentials.
+
+2) It is assumed that in a production environment the CI system would not run within the same cluster
+
+
+Relevant credentials/information can be acquired with:
+
+```
+$ kubectl get secret $(kubectl get secret | grep notejam-ci-user-token | awk '{print $1}') -o json | jq ".data | map_values(@base64d)"
+$ kubectl cluster-info
+```
+
+---

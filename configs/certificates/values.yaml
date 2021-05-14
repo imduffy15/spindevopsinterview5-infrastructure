@@ -1,0 +1,20 @@
+solvers:
+-   selector:
+        dnsNames:
+        - '*.chllng.ianduffy.ie'
+        - chllng.ianduffy.ie
+    dns01:
+        route53:
+            accessKeyID: AKIA2LY5EA3GKJ67CMVM
+            region: us-west-2
+            hostedZoneID: Z009962838QM53DIFP7CO
+            secretAccessKeySecretRef:
+                name: shared-secrets-ianduffy-route53-credentials
+                key: aws-secret-access-key
+certificates:
+-   name: wildcard-cert
+    cn: chllng.ianduffy.ie
+    dnsNames:
+    - chllng.ianduffy.ie
+    - '*.chllng.ianduffy.ie'
+email: cert-manager@ianduffy.ie
