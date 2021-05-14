@@ -7,13 +7,17 @@ repositories:
     url: https://prometheus-community.github.io/helm-charts
   - name: banzicloud-stable
     url: https://kubernetes-charts.banzaicloud.com
+  - name: cloudposse-incubator
+    url: https://charts.cloudposse.com/incubator/
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
 
 templates:
   default: &default
     missingFileHandler: Warn
     values:
-    - config/{{`{{ .Release.Name }}`}}/values.yaml
-    - config/{{`{{ .Release.Name }}`}}/values.yaml.gotmpl
+    - configs/{{`{{ .Release.Name }}`}}/values.yaml
+    - configs/{{`{{ .Release.Name }}`}}/values.yaml.gotmpl
     secrets:
     - secrets/{{`{{ .Release.Name }}`}}/secrets.yaml
     - secrets/{{`{{ .Release.Name }}`}}/secrets.yaml.gotmpl
@@ -23,6 +27,11 @@ releases:
     namespace: kube-system
     chart: appscode/kubed
     version: 0.12.0
+    <<: *default
+  - name: external-dns
+    namespace: kube-system
+    chart: bitnami/external-dns
+    version: 5.0.0
     <<: *default
   - name: nginx-ingress
     namespace: kube-system
@@ -40,4 +49,17 @@ releases:
     chart: prometheus-community/kube-prometheus-stack
     disableValidation: true
     version: 15.4.6
+    <<: *default
+  - name: woodpecker-agent
+    namespace: ci
+    chart: ./charts/monochart
+    <<: *default
+  - name: woodpecker-server
+    namespace: ci
+    chart: cloudposse-incubator/monochart
+    version: 0.25.0
+    <<: *default
+  - name: kube-system-secrets
+    namespace: kube-system
+    chart: ./charts/secrets
     <<: *default

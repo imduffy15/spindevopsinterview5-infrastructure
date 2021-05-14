@@ -1,0 +1,25 @@
+replicaCount: 1
+
+fullnameOverride: woodpecker-agent
+nameOverride: woodpecker-agent
+
+image:
+  repository: laszlocloud/woodpecker-agent
+  tag: v0.13.0
+
+secrets:
+  default:
+    enabled: true
+
+configMaps:
+  default:
+    enabled: true
+    env:
+      DRONE_SERVER: woodpecker-server.{{ .Release.Namespace }}.svc.cluster.local:9000
+
+deployment:
+  enabled: true
+
+hostMounts:
+  - name: docker
+    hostPath: /var/run/docker.sock

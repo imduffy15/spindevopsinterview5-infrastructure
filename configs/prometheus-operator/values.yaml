@@ -1,23 +1,25 @@
 alertmanager:
   ingress:
     enabled: true
+    pathType: ImplementationSpecific
     hosts:
-    - alertmanager.challenge.ianduffy.ie
+    - alertmanager.chllng.ianduffy.ie
     tls:
-    -   secretName: TODO-CERT
+    -   secretName: certificates-wildcard-cert
         hosts:
-        - alertmanager.TODO-SUBDOMAIN
+        - alertmanager.chllng.ianduffy.ie
 
 grafana:
   adminPassword: admin
   ingress:
     enabled: true
+    pathType: ImplementationSpecific
     hosts:
-    - grafana.TODO-SUBDOMAIN
+    - grafana.chllng.ianduffy.ie
     tls:
-    -   secretName: TODO-CERT
+    -   secretName: certificates-wildcard-cert
         hosts:
-        - grafana.TODO-SUBDOMAIN
+        - grafana.chllng.ianduffy.ie
 
   dashboardProviders:
     dashboardproviders.yaml:
@@ -42,12 +44,13 @@ grafana:
 prometheus:
   ingress:
     enabled: true
+    pathType: ImplementationSpecific
     hosts:
-    - prometheus.TODO-SUBDOMAIN
+    - prometheus.chllng.ianduffy.ie
     tls:
-    -   secretName: TODO-CERT
+    -   secretName: certificates-wildcard-cert
         hosts:
-        - prometheus.TODO-SUBDOMAIN
+        - prometheus.chllng.ianduffy.ie
 
   prometheusSpec:
     additionalScrapeConfigs:

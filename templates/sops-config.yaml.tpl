@@ -1,2 +1,2 @@
 creation_rules:
-  - kms: {{ kms_arn }}
+  - kms: ${kms_arn}

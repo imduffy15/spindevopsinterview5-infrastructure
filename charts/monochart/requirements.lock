@@ -1,0 +1,6 @@
+dependencies:
+- name: dockercfg
+  repository: https://charts.cloudposse.com/incubator/
+  version: 0.1.0
+digest: sha256:6d7dcd5ea2c32acf456126a75141b62df394d6f690f6d6fae6c274e06a1f3f40
+generated: "2021-05-14T11:23:09.932779+01:00"

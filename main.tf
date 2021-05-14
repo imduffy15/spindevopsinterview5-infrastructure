@@ -1,3 +1,11 @@
+terraform {
+  backend "s3" {
+    bucket = "spindevopsinterview5-terraform-states"
+    key    = "infrastructure"
+    region = "us-west-2"
+  }
+}
+
 resource "random_string" "suffix" {
   length  = 8
   special = false
@@ -179,12 +187,12 @@ resource "local_file" "dbconfig" {
 # KMS Key
 
 resource "aws_kms_key" "default" {
-  description             = "${local.prefix} key for encrypting stack secrets"
+  description             = "${local.prefix} key for encrypting notejam secrets"
   deletion_window_in_days = 7
 }
 
 resource "local_file" "sopsconfig" {
-  filename = "${path.module}/generated_configs/.sops.yaml"
+  filename = "${path.module}/generated_configs/notejam-sops.yaml"
   content = templatefile("${path.module}/templates/sops-config.yaml.tpl", {
     arn = aws_kms_key.default.arn
   })

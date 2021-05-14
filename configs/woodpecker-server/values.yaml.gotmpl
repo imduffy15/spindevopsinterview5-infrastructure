@@ -1,0 +1,55 @@
+replicaCount: 1
+
+fullnameOverride: woodpecker-server
+nameOverride: woodpecker-server
+
+image:
+  repository: laszlocloud/woodpecker-server
+  tag: v0.13.0
+
+secrets:
+  default:
+    enabled: true
+
+configMaps:
+  default:
+    enabled: true
+    env:
+      DRONE_ADMIN: imduffy15
+      DRONE_REPO_OWNERS: imduffy15
+      DRONE_GITHUB: "true"
+      DRONE_DEBUG: "true"
+      DRONE_OPEN: "true"
+      DRONE_VOLUME: /var/run/docker.sock:/var/run/docker.sock
+      DRONE_HOST: http://woodpecker-server.{{ .Release.Namespace }}.svc.cluster.local
+
+service:
+  enabled: true
+  type: ClusterIP
+  ports:
+    http:
+      internal: 8000
+      external: 80
+    grpc:
+      internal: 9000
+      external: 9000
+
+statefulset:
+  enabled: true
+  persistence:
+    enabled: true
+    mountPath: /var/lib/drone
+    size: 1Gi
+    accessMode: ReadWriteOnce
+
+ingress:
+  default:
+    enabled: true
+    port: http
+    hosts:
+     "woodpecker.chllng.ianduffy.ie": /
+     "7cd31b621b3e.ngrok.io": /
+    # tls:
+    #  - secretName: certificates-wildcard-cert
+    #    hosts:
+    #    - woodpecker.chllng.ianduffy.ie

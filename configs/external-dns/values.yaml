@@ -1,0 +1,25 @@
+dryRun: false
+logLevel: debug
+rbac:
+  create: true
+policy: sync
+
+provider: aws
+
+sources:
+  - ingress
+txtOwnerId: ianduffy
+txtPrefix: externaldns-
+registry: txt
+
+extraEnv:
+- name: AWS_ACCESS_KEY_ID
+  valueFrom:
+    secretKeyRef:
+      name: kube-system-secrets-ianduffy-route53-credentials
+      key: aws-access-key-id
+- name: AWS_SECRET_ACCESS_KEY
+  valueFrom:
+    secretKeyRef:
+      name: kube-system-secrets-ianduffy-route53-credentials
+      key: aws-secret-access-key
