@@ -105,5 +105,4 @@ Accessible with GSuite SSO for `*@spin.pm` and `*@ianduffy.ie`
  - https://grafana.chllng.ianduffy.ie
  - https://alertmanager.chllng.ianduffy.ie
  - https://prometheus.chllng.ianduffy.ie
-
-CI is available at https://woodpecker.chllng.ianduffy.ie/ anyone with a Github account can login/view, repo addition is restricted to my github username `imduffy15`.
+ - https://woodpecker.chllng.ianduffy.ie
