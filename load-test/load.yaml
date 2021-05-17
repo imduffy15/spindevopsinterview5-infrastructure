@@ -1,11 +1,11 @@
 
 phantom:
-    address: 52.43.40.39:443
+    address: chllng.ianduffy.ie:443
     uris:
       - /signin
     headers:
       - "[User-Agent: curl/7.35.0]"
-      - "[host: alb-green.chllng.ianduffy.ie]"
+      - "[host: chllng.ianduffy.ie]"
     header_http: "1.1"
     load_profile:
         load_type: rps
