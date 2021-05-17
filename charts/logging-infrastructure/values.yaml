@@ -1,0 +1,10 @@
+output:
+  cloudwatch:
+    auto_create_stream: true
+    use_tag_as_stream: true
+    retention_in_days: "7"
+    log_group_name: "/aws/eks/spindevopsinterview5-eks/applications"
+loggingOperator:
+  controlNamespace:
+  fluentd: {}
+  fluentbit: {}

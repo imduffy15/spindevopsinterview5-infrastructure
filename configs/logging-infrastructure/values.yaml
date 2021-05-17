@@ -1,0 +1,16 @@
+output:
+  cloudwatch:
+    region: us-west-2
+
+loggingOperator:
+  controlNamespace: kube-system
+  fluentd:
+    serviceAccount:
+      metadata:
+        annotations:
+          eks.amazonaws.com/role-arn: arn:aws:iam::803307717518:role/spindevopsinterview5-fluentd
+    metrics:
+      prometheusAnnotations: true
+  fluentbit:
+    metrics:
+      prometheusAnnotations: true

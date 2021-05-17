@@ -1,0 +1,12 @@
+match:
+  - select:
+      labels:
+        app.kubernetes.io/name: ingress-nginx
+
+filters:
+  - tag_normaliser: {}
+  - parser:
+      remove_key_name_field: true
+      reserve_data: true
+      parse:
+        type: nginx

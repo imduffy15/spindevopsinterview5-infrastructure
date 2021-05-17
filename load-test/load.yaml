@@ -1,0 +1,20 @@
+
+phantom:
+    address: 52.43.40.39:443
+    uris:
+      - /signin
+    headers:
+      - "[User-Agent: curl/7.35.0]"
+      - "[host: alb-green.chllng.ianduffy.ie]"
+    header_http: "1.1"
+    load_profile:
+        load_type: rps
+        schedule: const(100, 15m)
+    instances: 500
+    timeout: 60s
+    ssl: true
+    loop: -1
+    connection_test: false
+    writelog: "all"
+telegraf:
+    enabled: false

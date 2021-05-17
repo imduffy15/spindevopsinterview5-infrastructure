@@ -1,0 +1,14 @@
+# autoDiscoverAwsRegion: true
+awsRegion: "us-west-2"
+autoDiscoverAwsVpcID: true
+clusterName: spindevopsinterview5-eks
+
+rbac:
+  create: true
+  serviceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::803307717518:role/spindevopsinterview5-alb
+
+fullNameOverride: aws-alb-ingress
+nameOverride: aws-alb-ingress

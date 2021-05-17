@@ -1,0 +1,10 @@
+match:
+  - select: {}
+
+filters:
+  - tag_normaliser: {}
+  - parser:
+      remove_key_name_field: true
+      reserve_data: true
+      parse:
+        type: json

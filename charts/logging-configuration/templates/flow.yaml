@@ -1,0 +1,14 @@
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Flow
+metadata:
+  labels: {{ include "logger.labels" . | nindent 4 }}
+  name: {{ include "logger.fullname" . }}
+spec:
+  {{- with .Values.filters }}
+  filters: {{ toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.match }}
+  match: {{ toYaml . | nindent 4 }}
+  {{- end }}
+  globalOutputRefs:
+    -  {{ .Values.output }}

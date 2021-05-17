@@ -1,0 +1,21 @@
+controller:
+  kind: DaemonSet
+  ingressClass: nginx-alb
+  config:
+    server-tokens: "false"
+    use-proxy-protocol: "false"
+    compute-full-forwarded-for: "true"
+    use-forwarded-headers: "true"
+  admissionWebhooks:
+    enabled: false
+  service:
+    type: NodePort
+    externalTrafficPolicy: Local
+  publishService:
+    enabled: true
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9913"

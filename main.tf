@@ -47,7 +47,7 @@ module "vpc" {
 
   public_subnet_tags = {
     "kubernetes.io/cluster/${local.prefix}-eks" = "shared"
-    "kubernetes.io/role/elb"                                                   = "1"
+    "kubernetes.io/role/elb"                    = "1"
   }
 }
 
@@ -94,7 +94,10 @@ module "eks" {
   ]
 
   worker_additional_security_group_ids = [aws_security_group.default.id]
-  write_kubeconfig = false
+  write_kubeconfig                     = false
+  enable_irsa                          = true
+  cluster_log_retention_in_days        = 7
+  cluster_enabled_log_types            = ["api", "audit", "authenticator"]
 }
 
 data "aws_eks_cluster" "cluster" {
@@ -123,6 +126,220 @@ resource "local_file" "kubeconfig" {
   file_permission = 0600
 }
 
+data "aws_iam_policy_document" "fluentd" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
+
+    condition {
+      test     = "StringEquals"
+      variable = format("%s:sub", replace(module.eks.cluster_oidc_issuer_url, "https://", ""))
+      values   = ["system:serviceaccount:kube-system:logging-infrastructure-fluentd"]
+    }
+
+    principals {
+      identifiers = [module.eks.oidc_provider_arn]
+      type        = "Federated"
+    }
+  }
+}
+
+resource "aws_iam_role" "fluentd" {
+  name               = "${local.prefix}-fluentd"
+  assume_role_policy = data.aws_iam_policy_document.fluentd.json
+}
+
+data "aws_iam_policy_document" "fluentd-policy" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "logs:PutLogEvents",
+      "logs:CreateLogGroup",
+      "logs:PutRetentionPolicy",
+      "logs:CreateLogStream",
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams"
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "fluentd" {
+  name   = "${local.prefix}-fluentd"
+  role   = aws_iam_role.fluentd.id
+  policy = data.aws_iam_policy_document.fluentd-policy.json
+}
+
+# data "aws_iam_policy_document" "alb" {
+#   statement {
+#     actions = ["sts:AssumeRoleWithWebIdentity"]
+#     effect  = "Allow"
+
+#     condition {
+#       test     = "StringEquals"
+#       variable = format("%s:sub", replace(module.eks.cluster_oidc_issuer_url, "https://", ""))
+#       values   = ["system:serviceaccount:kube-system:aws-alb-ingress"]
+#     }
+
+#     principals {
+#       identifiers = [module.eks.oidc_provider_arn]
+#       type        = "Federated"
+#     }
+#   }
+# }
+
+# resource "aws_iam_role" "alb" {
+#   name               = "${local.prefix}-alb"
+#   assume_role_policy = data.aws_iam_policy_document.alb.json
+# }
+
+# data "aws_iam_policy_document" "alb-policy" {
+#   statement {
+#     actions = [
+#       "acm:DescribeCertificate",
+#       "acm:ListCertificates",
+#       "acm:GetCertificate",
+#     ]
+
+#     resources = ["*"]
+#   }
+
+#   statement {
+#     actions = [
+#       "ec2:AuthorizeSecurityGroupIngress",
+#       "ec2:CreateSecurityGroup",
+#       "ec2:CreateTags",
+#       "ec2:DeleteTags",
+#       "ec2:DeleteSecurityGroup",
+#       "ec2:DescribeAccountAttributes",
+#       "ec2:DescribeAddresses",
+#       "ec2:DescribeInstances",
+#       "ec2:DescribeInstanceStatus",
+#       "ec2:DescribeInternetGateways",
+#       "ec2:DescribeNetworkInterfaces",
+#       "ec2:DescribeSecurityGroups",
+#       "ec2:DescribeSubnets",
+#       "ec2:DescribeTags",
+#       "ec2:DescribeVpcs",
+#       "ec2:ModifyInstanceAttribute",
+#       "ec2:ModifyNetworkInterfaceAttribute",
+#       "ec2:RevokeSecurityGroupIngress",
+#     ]
+
+#     resources = ["*"]
+#   }
+
+#   statement {
+#     actions = [
+#       "elasticloadbalancing:AddListenerCertificates",
+#       "elasticloadbalancing:AddTags",
+#       "elasticloadbalancing:CreateListener",
+#       "elasticloadbalancing:CreateLoadBalancer",
+#       "elasticloadbalancing:CreateRule",
+#       "elasticloadbalancing:CreateTargetGroup",
+#       "elasticloadbalancing:DeleteListener",
+#       "elasticloadbalancing:DeleteLoadBalancer",
+#       "elasticloadbalancing:DeleteRule",
+#       "elasticloadbalancing:DeleteTargetGroup",
+#       "elasticloadbalancing:DeregisterTargets",
+#       "elasticloadbalancing:DescribeListenerCertificates",
+#       "elasticloadbalancing:DescribeListeners",
+#       "elasticloadbalancing:DescribeLoadBalancers",
+#       "elasticloadbalancing:DescribeLoadBalancerAttributes",
+#       "elasticloadbalancing:DescribeRules",
+#       "elasticloadbalancing:DescribeSSLPolicies",
+#       "elasticloadbalancing:DescribeTags",
+#       "elasticloadbalancing:DescribeTargetGroups",
+#       "elasticloadbalancing:DescribeTargetGroupAttributes",
+#       "elasticloadbalancing:DescribeTargetHealth",
+#       "elasticloadbalancing:ModifyListener",
+#       "elasticloadbalancing:ModifyLoadBalancerAttributes",
+#       "elasticloadbalancing:ModifyRule",
+#       "elasticloadbalancing:ModifyTargetGroup",
+#       "elasticloadbalancing:ModifyTargetGroupAttributes",
+#       "elasticloadbalancing:RegisterTargets",
+#       "elasticloadbalancing:RemoveListenerCertificates",
+#       "elasticloadbalancing:RemoveTags",
+#       "elasticloadbalancing:SetIpAddressType",
+#       "elasticloadbalancing:SetSecurityGroups",
+#       "elasticloadbalancing:SetSubnets",
+#       "elasticloadbalancing:SetWebACL",
+#     ]
+
+#     resources = ["*"]
+#   }
+
+#   statement {
+#     actions = [
+#       "iam:CreateServiceLinkedRole",
+#       "iam:GetServerCertificate",
+#       "iam:ListServerCertificates",
+#     ]
+
+#     resources = ["*"]
+#   }
+
+#   statement {
+#     actions = [
+#       "cognito-idp:DescribeUserPoolClient",
+#     ]
+
+#     resources = ["*"]
+#   }
+
+#   statement {
+#     actions = [
+#       "tag:GetResources",
+#       "tag:TagResources",
+#     ]
+
+#     resources = ["*"]
+#   }
+
+#   statement {
+#     actions = [
+#       "waf:GetWebACL",
+#       "waf-regional:GetWebACLForResource",
+#       "waf-regional:GetWebACL",
+#       "waf-regional:AssociateWebACL",
+#       "waf-regional:DisassociateWebACL",
+#     ]
+
+#     resources = ["*"]
+#   }
+
+#   statement {
+#     actions = [
+#       "wafv2:GetWebACL",
+#       "wafv2:GetWebACLForResource",
+#       "wafv2:AssociateWebACL",
+#       "wafv2:DisassociateWebACL"
+#     ]
+#     resources = ["*"]
+#   }
+
+#   statement {
+#     actions = [
+#       "shield:DescribeProtection",
+#       "shield:GetSubscriptionState",
+#       "shield:DeleteProtection",
+#       "shield:CreateProtection",
+#       "shield:DescribeSubscription",
+#       "shield:ListProtections"
+#     ]
+#     resources = ["*"]
+#   }
+# }
+
+# resource "aws_iam_role_policy" "alb" {
+#   name   = "${local.prefix}-alb"
+#   role   = aws_iam_role.alb.id
+#   policy = data.aws_iam_policy_document.alb-policy.json
+# }
+
+
 # Helm
 
 terraform {
@@ -136,9 +353,9 @@ terraform {
 provider "helmfile" {}
 
 resource "helmfile_release_set" "services" {
-  helm_binary = "helm3"
+  helm_binary       = "helm3"
   working_directory = path.module
-  kubeconfig = "${path.module}/generated_configs/kubeconfig"
+  kubeconfig        = "${path.module}/generated_configs/kubeconfig"
   depends_on = [
     local_file.kubeconfig
   ]
@@ -161,6 +378,10 @@ resource "aws_db_instance" "notejam_db" {
   identifier           = "${local.prefix}-rds"
   skip_final_snapshot  = true
 
+  multi_az = true
+
+  backup_retention_period = 14
+
   vpc_security_group_ids = [
     aws_security_group.default.id
   ]
@@ -168,7 +389,6 @@ resource "aws_db_instance" "notejam_db" {
   name                = local.db_notejam_name
   username            = local.db_notejam_name
   password            = random_string.db_password.result
-  publicly_accessible = true
 }
 
 resource "local_file" "dbconfig" {
@@ -197,11 +417,13 @@ resource "local_file" "sopsconfig" {
 }
 
 resource "aws_ecr_repository" "registry" {
-  name                 = "${local.prefix}-notejam"
+  name = "${local.prefix}-notejam"
   image_scanning_configuration {
     scan_on_push = false
   }
 }
+
+# CI
 
 resource "aws_iam_user" "ci_user" {
   name = "${local.prefix}-notejam-ci-user"
@@ -212,8 +434,8 @@ resource "aws_iam_access_key" "ci_user" {
 }
 
 resource "local_file" "ci_user" {
-  filename = "${path.module}/generated_configs/ci-aws-creds.txt"
-  content = "${aws_iam_access_key.ci_user.id}\n${aws_iam_access_key.ci_user.secret}\n"
+  filename        = "${path.module}/generated_configs/ci-aws-creds.txt"
+  content         = "${aws_iam_access_key.ci_user.id}\n${aws_iam_access_key.ci_user.secret}\n"
   file_permission = 0600
 }
 
@@ -257,6 +479,8 @@ resource "aws_iam_user_policy" "ci_user" {
 EOF
 }
 
+# SMTP
+
 resource "aws_iam_user" "smtp_user" {
   name = "${local.prefix}-notejam-smtp-user"
 }
@@ -266,8 +490,8 @@ resource "aws_iam_access_key" "smtp_user" {
 }
 
 resource "local_file" "smtp_user" {
-  filename = "${path.module}/generated_configs/smtp-creds.txt"
-  content = "${aws_iam_access_key.smtp_user.id}\n${aws_iam_access_key.smtp_user.ses_smtp_password_v4}\n"
+  filename        = "${path.module}/generated_configs/smtp-creds.txt"
+  content         = "${aws_iam_access_key.smtp_user.id}\n${aws_iam_access_key.smtp_user.ses_smtp_password_v4}\n"
   file_permission = 0600
 }
 

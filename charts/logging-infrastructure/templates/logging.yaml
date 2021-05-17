@@ -1,0 +1,17 @@
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Logging
+metadata:
+  labels: {{ include "logger.labels" . | nindent 4 }}
+  name: {{ include "logger.fullname" . }}
+spec:
+  fluentd:
+    {{- if .Values.loggingOperator.fluentd }}
+{{ toYaml .Values.loggingOperator.fluentd | indent 4}}
+    {{- end}}
+
+  fluentbit:
+    {{- if .Values.loggingOperator.fluentbit }}
+{{ toYaml .Values.loggingOperator.fluentbit | indent 4}}
+    {{- end}}
+
+  controlNamespace: {{ .Values.loggingOperator.controlNamespace | default .Release.Namespace }}

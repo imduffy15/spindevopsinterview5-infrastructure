@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    meta.helm.sh/release-name: notejam-alb-green
+    meta.helm.sh/release-namespace: default
+    nginx.ingress.kubernetes.io/affinity: cookie
+    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-name: route
+    kubernetes.io/ingress.class: nginx-alb
+  creationTimestamp: "2021-05-16T20:15:04Z"
+  generation: 1
+  labels:
+    app: notejam-alb-green
+    app.kubernetes.io/managed-by: Helm
+    chart: monochart-0.25.0
+    heritage: Helm
+    ingressName: default
+    release: notejam-alb-green
+  name: notejam-alb-green-default
+  namespace: default
+spec:
+  rules:
+  - host: alb-green-notejam.chllng.ianduffy.ie
+    http:
+      paths:
+      - backend:
+          serviceName: notejam-alb-green
+          servicePort: http
+        path: /
+  - host: alb-green-www.chllng.ianduffy.ie
+    http:
+      paths:
+      - backend:
+          serviceName: notejam-alb-green
+          servicePort: http
+        path: /
+  - host: alb-green.chllng.ianduffy.ie
+    http:
+      paths:
+      - backend:
+          serviceName: notejam-alb-green
+          servicePort: http
+        path: /
